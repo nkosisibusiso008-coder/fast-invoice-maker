@@ -1,1 +1,588 @@
-<h1>Fast Invoice Maker - Coming Soon</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fast Quote & Invoice Maker</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --accent: #0f766e;
+      --accent-hover: #115e59;
+      --border: #e2e8f0;
+      --danger: #dc2626;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    .topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      background: #ccfbf1;
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--ink);
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    button:hover { background: #f8fafc; }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    button.primary:hover { background: var(--accent-hover); }
+
+    button.danger {
+      color: var(--danger);
+      padding: 6px 10px;
+      font-size: 0.85rem;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 24px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      margin-bottom: 12px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: 2.5fr 0.8fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .item-row input { margin-bottom: 0; }
+
+    @media (max-width: 600px) {
+      .item-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      .item-desc { grid-column: 1 / -1; }
+    }
+
+    /* Invoice Preview */
+    .invoice-sheet {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      background: #fff;
+    }
+
+    .inv-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+    }
+
+    .inv-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    .inv-meta {
+      text-align: right;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .inv-parties {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 18px;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .num { text-align: right; }
+
+    .totals {
+      margin-left: auto;
+      max-width: 260px;
+      font-size: 0.92rem;
+    }
+
+    .totals div {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+    }
+
+    .grand-total {
+      font-size: 1.1rem;
+      font-weight: 800;
+      border-top: 2px solid var(--ink);
+      margin-top: 6px;
+      padding-top: 8px !important;
+    }
+
+    .notes-box {
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    @media print {
+      .topbar, .editor-panel, .no-print { display: none !important; }
+      body { background: #fff; }
+      .container {
+        display: block;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .preview-panel {
+        border: none;
+        padding: 0;
+      }
+      .invoice-sheet {
+        border: none;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span>QuickBill Studio</span>
+      <span class="badge">Quote & Invoice Maker</span>
+    </div>
+    <div class="actions">
+      <button type="button" onclick="resetDemo()">Reset Sample</button>
+      <button type="button" class="primary" onclick="window.print()">Download / Print PDF</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Left: Editor -->
+    <section class="panel editor-panel">
+      <h2>1. Document & Parties</h2>
+      <div class="grid-2">
+        <div>
+          <label for="docType">Document Type</label>
+          <select id="docType" onchange="render()">
+            <option value="INVOICE">Invoice</option>
+            <option value="QUOTE">Quote / Estimate</option>
+          </select>
+        </div>
+        <div>
+          <label for="currency">Currency Symbol</label>
+          <select id="currency" onchange="render()">
+            <option value="$">$ (USD)</option>
+            <option value="R">R (ZAR)</option>
+            <option value="€">€ (EUR)</option>
+            <option value="£">£ (GBP)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label for="docNumber">Number</label>
+          <input id="docNumber" type="text" value="INV-001" oninput="render()" />
+        </div>
+        <div>
+          <label for="docDate">Date</label>
+          <input id="docDate" type="date" oninput="render()" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label for="fromName">Your Name / Business</label>
+          <input id="fromName" type="text" placeholder="e.g. Alex Carter Plumbing" oninput="render()" />
+        </div>
+        <div>
+          <label for="fromContact">Your Email / Phone</label>
+          <input id="fromContact" type="text" placeholder="alex@example.com" oninput="render()" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label for="toName">Client Name / Company</label>
+          <input id="toName" type="text" placeholder="e.g. Green Leaf Cafe" oninput="render()" />
+        </div>
+        <div>
+          <label for="toContact">Client Email / Address</label>
+          <input id="toContact" type="text" placeholder="client@example.com" oninput="render()" />
+        </div>
+      </div>
+
+      <h2>2. Line Items</h2>
+      <div id="itemsList"></div>
+      <button type="button" onclick="addItem()">+ Add Item</button>
+
+      <div class="grid-2" style="margin-top: 14px;">
+        <div>
+          <label for="taxRate">Tax (%)</label>
+          <input id="taxRate" type="number" min="0" max="100" step="0.1" value="0" oninput="render()" />
+        </div>
+        <div>
+          <label for="notes">Payment Terms / Notes</label>
+          <input id="notes" type="text" value="Payment due within 14 days. Thank you for your business!" oninput="render()" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Live Preview -->
+    <section class="panel preview-panel">
+      <h2>Live Preview</h2>
+      <div class="invoice-sheet">
+        <div class="inv-header">
+          <div>
+            <h3 class="inv-title" id="outType">INVOICE</h3>
+            <div style="font-weight: 700; margin-top: 4px;" id="outFromName">Your Business</div>
+            <div style="font-size: 0.85rem; color: var(--muted);" id="outFromContact"></div>
+          </div>
+          <div class="inv-meta">
+            <div><strong>#<span id="outNumber">INV-001</span></strong></div>
+            <div>Date: <span id="outDate"></span></div>
+          </div>
+        </div>
+
+        <div class="inv-parties">
+          <div>
+            <div style="font-size: 0.78rem; color: var(--muted); text-transform: uppercase; font-weight: 700;">Bill To</div>
+            <div style="font-weight: 700;" id="outToName">Client Name</div>
+            <div style="font-size: 0.85rem; color: var(--muted);" id="outToContact"></div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="num">Qty</th>
+              <th class="num">Price</th>
+              <th class="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="outRows"></tbody>
+        </table>
+
+        <div class="totals">
+          <div><span>Subtotal</span><span id="outSubtotal">$0.00</span></div>
+          <div><span>Tax (<span id="outTaxLabel">0</span>%)</span><span id="outTax">$0.00</span></div>
+          <div class="grand-total"><span>Total</span><span id="outTotal">$0.00</span></div>
+        </div>
+
+        <div class="notes-box" id="outNotes"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "quickbill_v1_state";
+    let items = [
+      { desc: "Website fix & speed tune-up", qty: 1, price: 150 },
+      { desc: "Monthly maintenance", qty: 1, price: 75 }
+    ];
+
+    function setTodayIfEmpty() {
+      const dateEl = document.getElementById("docDate");
+      if (!dateEl.value) {
+        dateEl.value = new Date().toISOString().split("T")[0];
+      }
+    }
+
+    function addItem(desc = "", qty = 1, price = 0) {
+      items.push({ desc, qty, price });
+      renderItemsEditor();
+      render();
+    }
+
+    function removeItem(index) {
+      if (items.length === 1) {
+        items = [{ desc: "", qty: 1, price: 0 }];
+      } else {
+        items.splice(index, 1);
+      }
+      renderItemsEditor();
+      render();
+    }
+
+    function updateItem(index, field, value) {
+      if (field === "desc") {
+        items[index].desc = value;
+      } else {
+        items[index][field] = parseFloat(value) || 0;
+      }
+      render();
+    }
+
+    function renderItemsEditor() {
+      const list = document.getElementById("itemsList");
+      list.innerHTML = "";
+      items.forEach((item, idx) => {
+        const row = document.createElement("div");
+        row.className = "item-row";
+        row.innerHTML = `
+          <input class="item-desc" type="text" placeholder="Item or service description" value="${escapeAttr(item.desc)}" oninput="updateItem(${idx}, 'desc', this.value)" />
+          <input type="number" min="0" step="any" placeholder="Qty" value="${item.qty}" oninput="updateItem(${idx}, 'qty', this.value)" />
+          <input type="number" min="0" step="0.01" placeholder="Price" value="${item.price}" oninput="updateItem(${idx}, 'price', this.value)" />
+          <button type="button" class="danger" onclick="removeItem(${idx})" title="Remove">✕</button>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function escapeAttr(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function fmt(num, sym) {
+      return `${sym}${(Number(num) || 0).toFixed(2)}`;
+    }
+
+    function render() {
+      setTodayIfEmpty();
+      const sym = document.getElementById("currency").value;
+      const docType = document.getElementById("docType").value;
+      const docNumber = document.getElementById("docNumber").value || "001";
+      const docDate = document.getElementById("docDate").value;
+      const fromName = document.getElementById("fromName").value || "Your Business Name";
+      const fromContact = document.getElementById("fromContact").value || "";
+      const toName = document.getElementById("toName").value || "Client Name";
+      const toContact = document.getElementById("toContact").value || "";
+      const taxRate = parseFloat(document.getElementById("taxRate").value) || 0;
+      const notes = document.getElementById("notes").value || "";
+
+      document.getElementById("outType").textContent = docType;
+      document.getElementById("outNumber").textContent = docNumber;
+      document.getElementById("outDate").textContent = docDate;
+      document.getElementById("outFromName").textContent = fromName;
+      document.getElementById("outFromContact").textContent = fromContact;
+      document.getElementById("outToName").textContent = toName;
+      document.getElementById("outToContact").textContent = toContact;
+      document.getElementById("outTaxLabel").textContent = taxRate;
+      document.getElementById("outNotes").textContent = notes;
+
+      const tbody = document.getElementById("outRows");
+      tbody.innerHTML = "";
+      let subtotal = 0;
+
+      items.forEach((item) => {
+        const qty = Number(item.qty) || 0;
+        const price = Number(item.price) || 0;
+        const lineTotal = qty * price;
+        subtotal += lineTotal;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeAttr(item.desc || "Service item")}</td>
+          <td class="num">${qty}</td>
+          <td class="num">${fmt(price, sym)}</td>
+          <td class="num">${fmt(lineTotal, sym)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
+
+      document.getElementById("outSubtotal").textContent = fmt(subtotal, sym);
+      document.getElementById("outTax").textContent = fmt(taxAmount, sym);
+      document.getElementById("outTotal").textContent = fmt(total, sym);
+
+      saveState();
+    }
+
+    function saveState() {
+      const state = {
+        docType: document.getElementById("docType").value,
+        currency: document.getElementById("currency").value,
+        docNumber: document.getElementById("docNumber").value,
+        docDate: document.getElementById("docDate").value,
+        fromName: document.getElementById("fromName").value,
+        fromContact: document.getElementById("fromContact").value,
+        toName: document.getElementById("toName").value,
+        toContact: document.getElementById("toContact").value,
+        taxRate: document.getElementById("taxRate").value,
+        notes: document.getElementById("notes").value,
+        items
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        if (state.docType) document.getElementById("docType").value = state.docType;
+        if (state.currency) document.getElementById("currency").value = state.currency;
+        if (state.docNumber) document.getElementById("docNumber").value = state.docNumber;
+        if (state.docDate) document.getElementById("docDate").value = state.docDate;
+        if (state.fromName !== undefined) document.getElementById("fromName").value = state.fromName;
+        if (state.fromContact !== undefined) document.getElementById("fromContact").value = state.fromContact;
+        if (state.toName !== undefined) document.getElementById("toName").value = state.toName;
+        if (state.toContact !== undefined) document.getElementById("toContact").value = state.toContact;
+        if (state.taxRate !== undefined) document.getElementById("taxRate").value = state.taxRate;
+        if (state.notes !== undefined) document.getElementById("notes").value = state.notes;
+        if (Array.isArray(state.items) && state.items.length > 0) {
+          items = state.items;
+        }
+      } catch (e) {}
+    }
+
+    function resetDemo() {
+      localStorage.removeItem(STORAGE_KEY);
+      items = [
+        { desc: "Website fix & speed tune-up", qty: 1, price: 150 },
+        { desc: "Monthly maintenance", qty: 1, price: 75 }
+      ];
+      document.getElementById("docType").value = "INVOICE";
+      document.getElementById("currency").value = "$";
+      document.getElementById("docNumber").value = "INV-001";
+      document.getElementById("docDate").value = new Date().toISOString().split("T")[0];
+      document.getElementById("fromName").value = "";
+      document.getElementById("fromContact").value = "";
+      document.getElementById("toName").value = "";
+      document.getElementById("toContact").value = "";
+      document.getElementById("taxRate").value = "0";
+      document.getElementById("notes").value = "Payment due within 14 days. Thank you for your business!";
+      renderItemsEditor();
+      render();
+    }
+
+    loadState();
+    setTodayIfEmpty();
+    renderItemsEditor();
+    render();
+  </script>
+</body>
+</html>
