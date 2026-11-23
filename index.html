@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TrustBill — Quotes, Invoices & Client Billing</title>
+  <title>TrustBill — Quotes, Invoices & Payment Confirmation</title>
   <style>
     :root {
       --bg: #f1f5f9;
@@ -15,6 +15,8 @@
       --emerald: #059669;
       --emerald-dark: #047857;
       --emerald-soft: #ecfdf5;
+      --amber-soft: #fef3c7;
+      --amber-ink: #92400e;
       --border: #cbd5e1;
       --danger: #dc2626;
     }
@@ -29,7 +31,6 @@
       line-height: 1.5;
     }
 
-    /* Trust Banner & Header */
     .trust-bar {
       background: var(--navy);
       color: #e2e8f0;
@@ -116,11 +117,13 @@
 
     button.primary:hover { background: var(--emerald-dark); }
 
-    button.navy {
-      background: var(--navy);
+    button.whatsapp {
+      background: #16a34a;
       color: #fff;
-      border-color: var(--navy);
+      border-color: #16a34a;
     }
+
+    button.whatsapp:hover { background: #15803d; }
 
     button.active-tab {
       background: var(--navy);
@@ -226,7 +229,6 @@
       .item-desc { grid-column: 1 / -1; }
     }
 
-    /* Saved Invoices List */
     .saved-item {
       display: flex;
       justify-content: space-between;
@@ -242,22 +244,41 @@
 
     .status-badge {
       font-size: 0.74rem;
-      font-weight: 700;
-      padding: 2px 8px;
+      font-weight: 800;
+      padding: 3px 9px;
       border-radius: 999px;
     }
 
-    .status-unpaid {
-      background: #fef3c7;
-      color: #92400e;
+    .status-pending {
+      background: var(--amber-soft);
+      color: var(--amber-ink);
     }
 
-    .status-paid {
+    .status-confirmed {
       background: var(--emerald-soft);
       color: var(--emerald-dark);
+      border: 1px solid #a7f3d0;
     }
 
-    /* Invoice Sheet */
+    .share-bar {
+      margin-bottom: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--surface-soft);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .share-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .invoice-sheet {
       border: 1px solid #cbd5e1;
       border-radius: 12px;
@@ -348,17 +369,31 @@
       padding-top: 8px !important;
     }
 
-    .client-pay-box {
+    .confirmation-box {
       margin-top: 18px;
       padding: 14px;
       border-radius: 10px;
+      background: var(--surface-soft);
+      border: 1px solid #cbd5e1;
+    }
+
+    .confirmation-box.confirmed {
       background: var(--emerald-soft);
-      border: 1px solid #a7f3d0;
+      border-color: #a7f3d0;
+    }
+
+    .confirmation-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .confirmation-details {
+      font-size: 0.85rem;
+      color: var(--muted);
     }
 
     .notes-box {
@@ -369,7 +404,6 @@
       color: var(--muted);
     }
 
-    /* Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -406,7 +440,7 @@
     .client-mode .owner-only { display: none !important; }
 
     @media print {
-      .trust-bar, .topbar, .owner-only, .footer, .no-print { display: none !important; }
+      .trust-bar, .topbar, .owner-only, .share-bar, .footer, .no-print { display: none !important; }
       body { background: #fff; }
       .container { margin: 0; padding: 0; max-width: 100%; }
       .workspace-grid { display: block; }
@@ -416,7 +450,7 @@
 </head>
 <body>
   <div class="trust-bar">
-    <span>🔒 Clear itemized billing • Instant PDF receipt • Built for freelancers & small businesses</span>
+    <span>Clear itemized quotes & invoices • Payment confirmation record • Direct WhatsApp & app share</span>
     <span id="accountBanner">Guest Session</span>
   </div>
 
@@ -441,7 +475,7 @@
       <div class="owner-only">
         <section class="card">
           <div class="card-head">
-            <h2>1. Business & Client Details</h2>
+            <h2>1. Business & Customer Details</h2>
             <button type="button" onclick="saveCurrentInvoice()">Save Invoice</button>
           </div>
 
@@ -503,8 +537,8 @@
               <input id="logoInput" type="file" accept="image/*" onchange="handleLogoUpload(event)" />
             </div>
             <div>
-              <label for="payLinkInput">Payment Link (Paystack / Gumroad / Lemon Squeezy)</label>
-              <input id="payLinkInput" type="url" placeholder="https://paystack.com/pay/your-link" oninput="render()" />
+              <label for="whatsappPhone">Customer WhatsApp Number (Optional)</label>
+              <input id="whatsappPhone" type="tel" placeholder="e.g. 27821234567" oninput="render()" />
             </div>
           </div>
         </section>
@@ -523,15 +557,43 @@
               <input id="taxRate" type="number" min="0" max="100" step="0.1" value="0" oninput="render()" />
             </div>
             <div>
-              <label for="notes">Payment Terms & Trust Note</label>
-              <input id="notes" type="text" value="Thank you for your business. Please include your invoice number as payment reference." oninput="render()" />
+              <label for="notes">Terms & Notes</label>
+              <input id="notes" type="text" value="Thank you for your business. Please keep your payment reference for confirmation." oninput="render()" />
             </div>
           </div>
         </section>
 
         <section class="card">
           <div class="card-head">
-            <h2>3. Saved Invoices</h2>
+            <h2>3. Payment Confirmation Record</h2>
+            <button type="button" class="primary" onclick="togglePaymentConfirmed()">Confirm / Toggle Paid</button>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label for="payMethod">Payment Method Used</label>
+              <select id="payMethod" onchange="render()">
+                <option value="Bank Transfer / EFT">Bank Transfer / EFT</option>
+                <option value="Cash">Cash</option>
+                <option value="External Card / Payment App">External Card / Payment App</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label for="payDate">Payment Date</label>
+              <input id="payDate" type="date" oninput="render()" />
+            </div>
+          </div>
+
+          <div>
+            <label for="payRef">Payment Reference / Confirmation Note</label>
+            <input id="payRef" type="text" placeholder="e.g. EFT Ref #88412 or 'Paid in cash to owner'" oninput="render()" />
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>4. Saved Invoices</h2>
             <span id="savedCount" style="font-size: 0.82rem; color: var(--muted);">0 saved</span>
           </div>
           <div id="savedList"></div>
@@ -542,7 +604,16 @@
       <section class="card">
         <div class="card-head">
           <h2 id="previewHeading">Live Document Preview</h2>
-          <span id="statusBadge" class="status-badge status-unpaid">UNPAID</span>
+          <span id="statusBadge" class="status-badge status-pending">PENDING PAYMENT</span>
+        </div>
+
+        <div class="share-bar no-print">
+          <span style="font-size: 0.84rem; font-weight: 700; color: var(--navy);">Send Invoice:</span>
+          <div class="share-buttons">
+            <button type="button" class="whatsapp" onclick="sendToWhatsApp()">WhatsApp</button>
+            <button type="button" onclick="shareViaApps()">Share / Other Apps</button>
+            <button type="button" onclick="copyInvoiceSummary()">Copy Text</button>
+          </div>
         </div>
 
         <div class="invoice-sheet">
@@ -582,17 +653,19 @@
           <div class="totals">
             <div><span>Subtotal</span><span id="outSubtotal">R0.00</span></div>
             <div><span>Tax (<span id="outTaxLabel">0</span>%)</span><span id="outTax">R0.00</span></div>
-            <div class="grand-total"><span>Total Due</span><span id="outTotal">R0.00</span></div>
+            <div class="grand-total"><span>Total</span><span id="outTotal">R0.00</span></div>
           </div>
 
-          <div class="client-pay-box no-print">
-            <div>
-              <div style="font-weight: 800; color: var(--emerald-dark); font-size: 0.92rem;">Customer Payment & Confirmation</div>
-              <div style="font-size: 0.82rem; color: var(--muted);" id="payHelpText">Connect your Paystack, Gumroad, or Lemon Squeezy link so customers can pay securely.</div>
+          <div class="confirmation-box" id="confirmationBox">
+            <div class="confirmation-top">
+              <strong id="outConfTitle">Payment Confirmation</strong>
+              <span id="outConfBadge" class="status-badge status-pending">PENDING PAYMENT</span>
             </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="primary" onclick="handlePayClick()">Pay Invoice Now</button>
-              <button type="button" class="owner-only" onclick="togglePaidStatus()">Mark Paid / Unpaid</button>
+            <div class="confirmation-details" id="outConfDetails">
+              No payment recorded yet. Once paid outside the app, the business owner can confirm payment here.
+            </div>
+            <div class="owner-only no-print" style="margin-top: 10px;">
+              <button type="button" class="primary" onclick="togglePaymentConfirmed()" id="btnToggleConf">Mark Payment Confirmed</button>
             </div>
           </div>
 
@@ -610,7 +683,7 @@
         <button type="button" onclick="closeAuthModal()">✕</button>
       </div>
       <p style="font-size: 0.86rem; color: var(--muted); margin-top: 0;">
-        Save your business profile for quick reuse. (Next step: we can connect Supabase for cloud accounts across devices.)
+        Save your business profile for quick reuse on this device.
       </p>
       <label for="accName">Your Full Name</label>
       <input id="accName" type="text" placeholder="e.g. Jordan Nkosi" />
@@ -626,27 +699,31 @@
   </div>
 
   <footer class="footer">
-    <span>TrustBill • Clear itemized quotes & invoices</span>
-    <span>Payments should always use a trusted checkout provider (Paystack / Lemon Squeezy / Gumroad).</span>
+    <span>TrustBill • Itemized quotes, invoices & payment confirmation records</span>
+    <span>Payments happen directly between customer and business owner outside the app.</span>
   </footer>
 
   <script>
-    const STATE_KEY = "trustbill_v2_state";
-    const SAVED_KEY = "trustbill_v2_saved";
-    const USER_KEY = "trustbill_v2_user";
+    const STATE_KEY = "trustbill_v4_state";
+    const SAVED_KEY = "trustbill_v4_saved";
+    const USER_KEY = "trustbill_v4_user";
 
     let items = [
       { desc: "Initial setup & consultation", qty: 1, price: 450 },
       { desc: "Core service delivery", qty: 2, price: 300 }
     ];
-    let isPaid = false;
+    let paymentConfirmed = false;
     let logoDataUrl = "";
     let savedInvoices = [];
 
     function setTodayIfEmpty() {
-      const el = document.getElementById("docDate");
-      if (!el.value) {
-        el.value = new Date().toISOString().split("T")[0];
+      const docDateEl = document.getElementById("docDate");
+      if (!docDateEl.value) {
+        docDateEl.value = new Date().toISOString().split("T")[0];
+      }
+      const payDateEl = document.getElementById("payDate");
+      if (!payDateEl.value) {
+        payDateEl.value = new Date().toISOString().split("T")[0];
       }
     }
 
@@ -660,7 +737,7 @@
         container.classList.add("client-mode");
         btnClient.classList.add("active-tab");
         btnOwner.classList.remove("active-tab");
-        heading.textContent = "Customer Invoice View";
+        heading.textContent = "Customer Invoice & Confirmation View";
       } else {
         container.classList.remove("client-mode");
         btnOwner.classList.add("active-tab");
@@ -721,18 +798,119 @@
       reader.readAsDataURL(file);
     }
 
-    function togglePaidStatus() {
-      isPaid = !isPaid;
+    function togglePaymentConfirmed() {
+      paymentConfirmed = !paymentConfirmed;
+      if (paymentConfirmed && !document.getElementById("payDate").value) {
+        document.getElementById("payDate").value = new Date().toISOString().split("T")[0];
+      }
       render();
     }
 
-    function handlePayClick() {
-      const link = document.getElementById("payLinkInput").value.trim();
-      if (link && (link.startsWith("https://") || link.startsWith("http://"))) {
-        window.open(link, "_blank", "noopener,noreferrer");
-      } else {
-        alert("No payment link set yet. Add your Paystack, Gumroad, or Lemon Squeezy payment link under 'Business & Client Details' so customers can pay securely.");
+    function getTotals() {
+      const sym = document.getElementById("currency").value;
+      const taxRate = parseFloat(document.getElementById("taxRate").value) || 0;
+      const subtotal = items.reduce((sum, item) => {
+        const qty = Number(item.qty) || 0;
+        const price = Number(item.price) || 0;
+        return sum + qty * price;
+      }, 0);
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
+      return { sym, taxRate, subtotal, taxAmount, total };
+    }
+
+    function buildInvoiceShareText() {
+      const docType = document.getElementById("docType").value;
+      const docNumber = document.getElementById("docNumber").value || "101";
+      const docDate = document.getElementById("docDate").value || "";
+      const fromName = document.getElementById("fromName").value || "Business";
+      const fromContact = document.getElementById("fromContact").value || "";
+      const toName = document.getElementById("toName").value || "Customer";
+      const payMethod = document.getElementById("payMethod").value;
+      const payDate = document.getElementById("payDate").value;
+      const payRef = document.getElementById("payRef").value.trim();
+      const notes = document.getElementById("notes").value.trim();
+      const { sym, taxRate, subtotal, taxAmount, total } = getTotals();
+
+      const lines = items.map((it) => {
+        const qty = Number(it.qty) || 0;
+        const price = Number(it.price) || 0;
+        const amt = qty * price;
+        return `- ${it.desc || "Service item"} (${qty} x ${fmt(price, sym)}) = ${fmt(amt, sym)}`;
+      });
+
+      const statusText = paymentConfirmed
+        ? `PAYMENT CONFIRMED (${payMethod}${payDate ? " on " + payDate : ""}${payRef ? ", Ref: " + payRef : ""})`
+        : `PENDING PAYMENT (${payMethod}${payRef ? ", Ref: " + payRef : ""})`;
+
+      const parts = [
+        `*${docType} #${docNumber}*`,
+        `From: ${fromName}${fromContact ? " (" + fromContact + ")" : ""}`,
+        `To: ${toName}`,
+        docDate ? `Date: ${docDate}` : "",
+        "",
+        "*Items:*",
+        ...lines,
+        "",
+        `Subtotal: ${fmt(subtotal, sym)}`,
+        taxRate > 0 ? `Tax (${taxRate}%): ${fmt(taxAmount, sym)}` : "",
+        `*Total: ${fmt(total, sym)}*`,
+        `Status: ${statusText}`,
+        notes ? `\nNotes: ${notes}` : ""
+      ].filter(Boolean);
+
+      return parts.join("\n");
+    }
+
+    function sendToWhatsApp() {
+      const text = buildInvoiceShareText();
+      const rawPhone = document.getElementById("whatsappPhone").value.replace(/\D/g, "");
+      const url = rawPhone
+        ? `https://wa.me/${rawPhone}?text=${encodeURIComponent(text)}`
+        : `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    async function shareViaApps() {
+      const text = buildInvoiceShareText();
+      const docType = document.getElementById("docType").value;
+      const docNumber = document.getElementById("docNumber").value || "101";
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `${docType} #${docNumber}`,
+            text
+          });
+          return;
+        } catch (err) {
+          if (err && err.name === "AbortError") return;
+        }
       }
+      copyInvoiceSummary("Share menu not supported on this browser — invoice text copied so you can paste it into any app!");
+    }
+
+    function copyInvoiceSummary(customMsg) {
+      const text = buildInvoiceShareText();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert(customMsg || "Invoice text copied! Paste it into WhatsApp, email, or any app.");
+        }).catch(() => {
+          fallbackCopy(text, customMsg);
+        });
+      } else {
+        fallbackCopy(text, customMsg);
+      }
+    }
+
+    function fallbackCopy(text, customMsg) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      alert(customMsg || "Invoice text copied! Paste it into WhatsApp, email, or any app.");
     }
 
     function escapeAttr(str) {
@@ -749,7 +927,6 @@
 
     function render() {
       setTodayIfEmpty();
-      const sym = document.getElementById("currency").value;
       const docType = document.getElementById("docType").value;
       const docNumber = document.getElementById("docNumber").value || "101";
       const docDate = document.getElementById("docDate").value;
@@ -757,9 +934,11 @@
       const fromContact = document.getElementById("fromContact").value || "";
       const toName = document.getElementById("toName").value || "Customer Name";
       const toContact = document.getElementById("toContact").value || "";
-      const taxRate = parseFloat(document.getElementById("taxRate").value) || 0;
       const notes = document.getElementById("notes").value || "";
-      const payLink = document.getElementById("payLinkInput").value.trim();
+      const payMethod = document.getElementById("payMethod").value;
+      const payDate = document.getElementById("payDate").value;
+      const payRef = document.getElementById("payRef").value.trim();
+      const { sym, taxRate, subtotal, taxAmount, total } = getTotals();
 
       document.getElementById("outType").textContent = docType;
       document.getElementById("outNumber").textContent = docNumber;
@@ -779,29 +958,41 @@
         logoEl.style.display = "none";
       }
 
-      const statusBadge = document.getElementById("statusBadge");
-      if (isPaid) {
-        statusBadge.textContent = "PAID";
-        statusBadge.className = "status-badge status-paid";
-      } else {
-        statusBadge.textContent = "UNPAID";
-        statusBadge.className = "status-badge status-unpaid";
-      }
+      const topBadge = document.getElementById("statusBadge");
+      const confBox = document.getElementById("confirmationBox");
+      const confBadge = document.getElementById("outConfBadge");
+      const confDetails = document.getElementById("outConfDetails");
+      const btnToggleConf = document.getElementById("btnToggleConf");
 
-      const payHelp = document.getElementById("payHelpText");
-      payHelp.textContent = payLink
-        ? "Click 'Pay Invoice Now' to open the secure payment checkout page."
-        : "Add a Paystack, Gumroad, or Lemon Squeezy link to enable direct checkout.";
+      if (paymentConfirmed) {
+        topBadge.textContent = "PAYMENT CONFIRMED";
+        topBadge.className = "status-badge status-confirmed";
+        confBadge.textContent = "PAYMENT CONFIRMED";
+        confBadge.className = "status-badge status-confirmed";
+        confBox.classList.add("confirmed");
+        btnToggleConf.textContent = "Mark Pending Payment";
+
+        const refText = payRef ? ` • Reference: ${escapeAttr(payRef)}` : "";
+        const dateText = payDate ? ` on ${escapeAttr(payDate)}` : "";
+        confDetails.innerHTML = `Confirmed by <strong>${escapeAttr(fromName)}</strong> via <strong>${escapeAttr(payMethod)}</strong>${dateText}${refText}.`;
+      } else {
+        topBadge.textContent = "PENDING PAYMENT";
+        topBadge.className = "status-badge status-pending";
+        confBadge.textContent = "PENDING PAYMENT";
+        confBadge.className = "status-badge status-pending";
+        confBox.classList.remove("confirmed");
+        btnToggleConf.textContent = "Mark Payment Confirmed";
+
+        const refHint = payRef ? ` Note/Ref: ${escapeAttr(payRef)}` : "";
+        confDetails.innerHTML = `Awaiting payment confirmation via <strong>${escapeAttr(payMethod)}</strong>.${refHint ? escapeAttr(refHint) : ""}`;
+      }
 
       const tbody = document.getElementById("outRows");
       tbody.innerHTML = "";
-      let subtotal = 0;
-
       items.forEach((item) => {
         const qty = Number(item.qty) || 0;
         const price = Number(item.price) || 0;
         const amount = qty * price;
-        subtotal += amount;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -812,9 +1003,6 @@
         `;
         tbody.appendChild(tr);
       });
-
-      const taxAmount = subtotal * (taxRate / 100);
-      const total = subtotal + taxAmount;
 
       document.getElementById("outSubtotal").textContent = fmt(subtotal, sym);
       document.getElementById("outTax").textContent = fmt(taxAmount, sym);
@@ -834,10 +1022,13 @@
         fromContact: document.getElementById("fromContact").value,
         toName: document.getElementById("toName").value || "Customer",
         toContact: document.getElementById("toContact").value,
+        whatsappPhone: document.getElementById("whatsappPhone").value,
         taxRate: document.getElementById("taxRate").value,
         notes: document.getElementById("notes").value,
-        payLink: document.getElementById("payLinkInput").value,
-        isPaid,
+        payMethod: document.getElementById("payMethod").value,
+        payDate: document.getElementById("payDate").value,
+        payRef: document.getElementById("payRef").value,
+        paymentConfirmed,
         items: JSON.parse(JSON.stringify(items))
       };
     }
@@ -850,7 +1041,7 @@
         localStorage.setItem(SAVED_KEY, JSON.stringify(savedInvoices));
       } catch (e) {}
       renderSavedList();
-      alert("Invoice saved to your list!");
+      alert("Invoice and payment confirmation saved!");
     }
 
     function loadSavedInvoice(id) {
@@ -864,10 +1055,13 @@
       document.getElementById("fromContact").value = found.fromContact || "";
       document.getElementById("toName").value = found.toName || "";
       document.getElementById("toContact").value = found.toContact || "";
+      document.getElementById("whatsappPhone").value = found.whatsappPhone || "";
       document.getElementById("taxRate").value = found.taxRate || "0";
       document.getElementById("notes").value = found.notes || "";
-      document.getElementById("payLinkInput").value = found.payLink || "";
-      isPaid = Boolean(found.isPaid);
+      document.getElementById("payMethod").value = found.payMethod || "Bank Transfer / EFT";
+      document.getElementById("payDate").value = found.payDate || "";
+      document.getElementById("payRef").value = found.payRef || "";
+      paymentConfirmed = Boolean(found.paymentConfirmed);
       items = Array.isArray(found.items) && found.items.length ? found.items : [{ desc: "", qty: 1, price: 0 }];
       renderItemsEditor();
       render();
@@ -900,7 +1094,7 @@
         row.innerHTML = `
           <div>
             <strong>${escapeAttr(inv.docNumber)}</strong> — ${escapeAttr(inv.toName || "Customer")}
-            <div style="font-size: 0.8rem; color: var(--muted);">${fmt(tot, inv.currency || "R")} • ${inv.isPaid ? "Paid" : "Unpaid"}</div>
+            <div style="font-size: 0.8rem; color: var(--muted);">${fmt(tot, inv.currency || "R")} • ${inv.paymentConfirmed ? "Payment Confirmed" : "Pending Payment"}</div>
           </div>
           <div style="display: flex; gap: 6px;">
             <button type="button" onclick="loadSavedInvoice('${inv.id}')">Open</button>
@@ -971,10 +1165,13 @@
         fromContact: document.getElementById("fromContact").value,
         toName: document.getElementById("toName").value,
         toContact: document.getElementById("toContact").value,
+        whatsappPhone: document.getElementById("whatsappPhone").value,
         taxRate: document.getElementById("taxRate").value,
         notes: document.getElementById("notes").value,
-        payLink: document.getElementById("payLinkInput").value,
-        isPaid,
+        payMethod: document.getElementById("payMethod").value,
+        payDate: document.getElementById("payDate").value,
+        payRef: document.getElementById("payRef").value,
+        paymentConfirmed,
         items
       };
       try {
@@ -1009,10 +1206,13 @@
           if (d.fromContact !== undefined) document.getElementById("fromContact").value = d.fromContact;
           if (d.toName !== undefined) document.getElementById("toName").value = d.toName;
           if (d.toContact !== undefined) document.getElementById("toContact").value = d.toContact;
+          if (d.whatsappPhone !== undefined) document.getElementById("whatsappPhone").value = d.whatsappPhone;
           if (d.taxRate !== undefined) document.getElementById("taxRate").value = d.taxRate;
           if (d.notes !== undefined) document.getElementById("notes").value = d.notes;
-          if (d.payLink !== undefined) document.getElementById("payLinkInput").value = d.payLink;
-          isPaid = Boolean(d.isPaid);
+          if (d.payMethod) document.getElementById("payMethod").value = d.payMethod;
+          if (d.payDate !== undefined) document.getElementById("payDate").value = d.payDate;
+          if (d.payRef !== undefined) document.getElementById("payRef").value = d.payRef;
+          paymentConfirmed = Boolean(d.paymentConfirmed);
           if (Array.isArray(d.items) && d.items.length) items = d.items;
         }
       } catch (e) {}
